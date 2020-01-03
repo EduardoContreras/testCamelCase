@@ -12,6 +12,23 @@ app.use(express.json());
 app.use(express.urlencoded());
 app.use(xmlparser());
 
+const a = (item) => {
+  const retrn = map(item.anyOf, current => {
+    if (!isEqual(current, { type: 'null' })) {
+      return current;
+    } else {
+      return {nullable: "true"};
+    }
+  });
+
+  let obj = {};
+  const rtrn = retrn.reduce(function(result, item, index) {   
+    obj = Object.assign({}, obj, item);     
+  }, []);
+
+  return obj;
+};
+
 const toCamelCase = items =>
   mapValues(items, item => {
     if (isArray(item) &&
@@ -19,22 +36,14 @@ const toCamelCase = items =>
       const trnsfrm = map(item, ite => camelCase(ite));
       return trnsfrm;
     } else if (isObject(item) && !has(item, 'anyOf')) {
-      return toCamelCase(item);
+      return toCamelCase(item);    
     } else if (has(item, 'anyOf')) {
-      const retrn = map(item.anyOf, current => {
-        if (!isEqual(current, { type: 'null' })) {
-          return current;
-        } else {
-          return {nullable: "true"};
+      item = a(item);
+      if (has(item, 'anyOf')) {
+        if (item.anyOf.find(e => has(e, 'enum')) !== undefined) {
+          delete item.anyOf.find(e => has(e, 'enum')).enum;
         }
-      });
-
-      let obj = {};
-      const rtrn = retrn.reduce(function(result, item, index) {   
-        obj = Object.assign({}, obj, item);     
-      }, []);
-
-      item = obj;
+      }     
     }
     return item;
   });
