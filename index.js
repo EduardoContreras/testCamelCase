@@ -17,7 +17,7 @@ const a = (item) => {
     if (!isEqual(current, { type: 'null' })) {
       return current;
     } else {
-      return {nullable: "true"};
+      return {nullable: true};
     }
   });
 
