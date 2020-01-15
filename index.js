@@ -26,7 +26,7 @@ const a = (item) => {
     obj = Object.assign({}, obj, item);     
   }, []);
 
-  return obj;
+  return {...obj, ...{originalAttrName: item.originalAttrName}};
 };
 
 const toCamelCaseKeys = item => camelcaseKeys(item, { deep: true, stopPaths: [] })
