@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const xmlparser = require('express-xml-bodyparser');
 const bodyParser = require('body-parser');
-const { every, isObject, isArray, map, mapValues, mapKeys, camelCase, has, eq, set, isEqual, toPlainObject } = require('lodash');
+const { every, isObject, isArray, map, mapValues, mapKeys, camelCase, has, eq, get, isEqual, toPlainObject } = require('lodash');
 const camelcaseKeys = require('camelcase-keys');
 
 app.use(bodyParser.json({limit: '50mb', extended: true}));
@@ -31,6 +31,11 @@ const a = (item) => {
 
 const toCamelCaseKeys = item => camelcaseKeys(item, { deep: true, stopPaths: [] })
 
+const setOriginalAttr = (item) => mapKeys(item.properties, (value, key) => {
+  item.properties[key]['originalAttrName'] = key;
+  return key;
+});
+
 const toCamelCase = items =>
   mapValues(items, item => {
     if (isArray(item) &&
@@ -38,11 +43,9 @@ const toCamelCase = items =>
       const trnsfrm = map(item, ite => camelCase(ite));
       return trnsfrm;
     } else if (isObject(item) && !has(item, 'anyOf')) {
+      debugger;
       if (has(item, 'properties')) {
-        mapKeys(item.properties, (value, key) => {
-          item.properties[key]['originalAttrName'] = key;
-          return key;
-        });
+        setOriginalAttr(item);
       }
       return toCamelCase(item);    
     } else if (has(item, 'anyOf')) {
@@ -57,7 +60,7 @@ const toCamelCase = items =>
   });
 
 app.post('/', function (req, res) {
-  res.send(toCamelCaseKeys(toCamelCase(req.body)));
+  res.send(toCamelCaseKeys(toCamelCase({result: req.body})).result);
 });
 
 app.listen(3000, function () {
